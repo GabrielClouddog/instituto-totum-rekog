@@ -109,7 +109,7 @@ def display_photos_with_info(valid_photos, invalid_photos, all_photos):
             with cols[1]:
                 st.write("")  # Espaço vazio
             with cols[2]:
-                st.image(photo_url, caption=f"Foto ID: {photo['photo_id']}", use_column_width=True)
+                st.image(photo_url, caption=f"Foto ID: {photo['photo_id']}")
 
     # Processando fotos inválidas
     st.header("Fotos Inválidas")
@@ -123,7 +123,7 @@ def display_photos_with_info(valid_photos, invalid_photos, all_photos):
                 with cols[1]:
                     st.markdown(f"<div style='display: flex; justify-content: center; align-items: center; height: 100%;'>{invalid_type.replace('_', ' ').title()}</div>", unsafe_allow_html=True)
                 with cols[2]:
-                    st.image(photo_url, caption=f"Foto ID: {photo['photo_id']}", use_column_width=True)
+                    st.image(photo_url, caption=f"Foto ID: {photo['photo_id']}")
 
 # Função para exibir o JSON de forma compacta
 def display_json(json_data):
