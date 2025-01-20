@@ -5,8 +5,20 @@ import uuid
 import time
 import json
 
-# Configuração do cabeçalho com a API Key
-HEADERS = {"x-api-key": "1TLezDk8DbaEZ4hZqCBWDrBwPGG5NDo9rL81Zj74"}
+# Campo para inserir SystemId e UserId
+system_id = st.text_input("System ID", "")
+user_id = st.text_input("User ID", "")
+
+# Função para gerar cabeçalhos dinâmicos com base no SystemId e UserId
+def generate_headers(system_id, user_id):
+    headers = {
+        "x-api-key": "1TLezDk8DbaEZ4hZqCBWDrBwPGG5NDo9rL81Zj74",  # sua chave de API
+    }
+    if system_id:
+        headers["system-id"] = system_id
+    if user_id:
+        headers["user-id"] = user_id
+    return headers
 
 # Gerar UUID para a sessão (somente se não estiver já no session_state)
 if 'session_uuid' not in st.session_state:
@@ -18,6 +30,7 @@ GET_URL = f"https://izt0vzdtac.execute-api.us-east-1.amazonaws.com/dev/process/{
 
 # Função para enviar os arquivos e obter as URLs assinadas
 def get_signed_urls(index_file, photo_files):
+    headers = generate_headers(system_id, user_id)  # Cabeçalhos dinâmicos
     payload = {
         "index": {
             "filename": index_file.name,
@@ -34,7 +47,8 @@ def get_signed_urls(index_file, photo_files):
         ]
     }
 
-    response = requests.post(SIGNED_URL, json=payload, headers=HEADERS)
+    print('headers', headers)
+    response = requests.post(SIGNED_URL, json=payload, headers=headers)
 
     if response.status_code == 200:
         return response.json()
@@ -44,10 +58,12 @@ def get_signed_urls(index_file, photo_files):
 
 # Função para fazer upload dos arquivos para as URLs assinadas
 def upload_to_s3(signed_urls, index_file, photo_files):
+    headers = generate_headers(system_id, user_id)  # Cabeçalhos dinâmicos
+
     # Upload do arquivo Index
     if "index" in signed_urls and index_file.name in signed_urls["index"]:
         index_url = signed_urls["index"][index_file.name]["signed_url"]
-        index_response = requests.put(index_url, data=index_file.getvalue(), headers={"Content-Type": index_file.type})
+        index_response = requests.put(index_url, data=index_file.getvalue(), headers={"Content-Type": index_file.type, **headers})
 
         if index_response.status_code == 200:
             st.toast(f"Arquivo Index '{index_file.name}' enviado com sucesso!", icon="✅")
@@ -61,7 +77,7 @@ def upload_to_s3(signed_urls, index_file, photo_files):
 
         if signed_url_data:
             signed_url = signed_url_data['signed_url']
-            photo_response = requests.put(signed_url, data=photo.getvalue(), headers={"Content-Type": photo.type})
+            photo_response = requests.put(signed_url, data=photo.getvalue(), headers={"Content-Type": photo.type, **headers})
 
             if photo_response.status_code == 200:
                 st.toast(f"Foto '{photo_name}' enviada com sucesso!", icon="✅")
@@ -70,7 +86,8 @@ def upload_to_s3(signed_urls, index_file, photo_files):
 
 # Função para buscar dados periodicamente
 def fetch_data():
-    response = requests.get(GET_URL, headers=HEADERS)
+    headers = generate_headers(system_id, user_id)  # Cabeçalhos dinâmicos
+    response = requests.get(GET_URL, headers=headers)
 
     if response.status_code == 200:
         st.toast(f"Resultados Encontrados", icon="✅")
@@ -81,7 +98,8 @@ def fetch_data():
 
 # Função para ler o arquivo JSON da URL
 def read_json_from_s3(result_url):
-    response = requests.get(result_url, headers=HEADERS)
+    headers = generate_headers(system_id, user_id)  # Cabeçalhos dinâmicos
+    response = requests.get(result_url, headers=headers)
     if response.status_code == 200:
         return response.json()
     else:
